@@ -51,8 +51,6 @@
         <activity android:name="com.dinodevs.greatfitwatchface.settings.ProgressWidgetsActivity"/>
         <activity android:name="com.dinodevs.greatfitwatchface.settings.LanguageActivity"/>
 
-        <receiver android:name="com.dinodevs.greatfitwatchface.widget.AlarmReceiver"/>
-
         <activity android:name=".test.TestActivity" android:theme="@android:style/Theme.DeviceDefault.NoActionBar"/>
     </application>
 

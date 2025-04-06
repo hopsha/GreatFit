@@ -13,9 +13,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Toast;
 
-import com.dinodevs.greatfitwatchface.GreatFit;
 import com.dinodevs.greatfitwatchface.R;
-import com.dinodevs.greatfitwatchface.widget.GreatWidget;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -175,12 +173,7 @@ public class Settings extends FragmentActivity {
     }
 
     private static void quit(final Settings settings) {
-        GreatWidget greatWidget = GreatFit.getGreatWidget();
-        if (greatWidget != null) {
-            greatWidget.refreshSlpt("Apply settings", true);
-        }
-
-        new Handler().postDelayed(new Runnable() {
+         new Handler().postDelayed(new Runnable() {
             public void run() {
                 settings.sendBroadcast(new Intent("com.huami.intent.action.WATCHFACE_CONFIG_CHANGED"));
                 // Kill this

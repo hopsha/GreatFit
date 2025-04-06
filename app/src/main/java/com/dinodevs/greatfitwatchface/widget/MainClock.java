@@ -15,43 +15,19 @@ import android.text.TextPaint;
 
 import com.dinodevs.greatfitwatchface.data.BatteryLevelRepo;
 import com.dinodevs.greatfitwatchface.data.CaloriesRepo;
-import com.dinodevs.greatfitwatchface.data.StepsRepo;
 import com.dinodevs.greatfitwatchface.data.TodayDistanceRepo;
-import com.dinodevs.greatfitwatchface.resource.SlptAnalogHourView;
-import com.dinodevs.greatfitwatchface.resource.SlptSecondHView;
-import com.dinodevs.greatfitwatchface.resource.SlptSecondLView;
-import com.dinodevs.greatfitwatchface.settings.LoadSettings;
-import com.dinodevs.greatfitwatchface.slpt.AlignX;
-import com.dinodevs.greatfitwatchface.slpt.AlignY;
+import com.dinodevs.greatfitwatchface.resource.ResourceManager;
 import com.huami.watch.watchface.util.Util;
-import com.ingenic.iwds.slpt.view.analog.SlptAnalogMinuteView;
-import com.ingenic.iwds.slpt.view.analog.SlptAnalogSecondView;
 import com.ingenic.iwds.slpt.view.core.SlptLinearLayout;
-import com.ingenic.iwds.slpt.view.core.SlptNumView;
 import com.ingenic.iwds.slpt.view.core.SlptPictureView;
 import com.ingenic.iwds.slpt.view.core.SlptViewComponent;
-import com.ingenic.iwds.slpt.view.digital.SlptDayHView;
-import com.ingenic.iwds.slpt.view.digital.SlptDayLView;
 import com.ingenic.iwds.slpt.view.digital.SlptHourHView;
 import com.ingenic.iwds.slpt.view.digital.SlptHourLView;
-import com.ingenic.iwds.slpt.view.digital.SlptMinuteHView;
-import com.ingenic.iwds.slpt.view.digital.SlptMinuteLView;
-import com.ingenic.iwds.slpt.view.digital.SlptMonthHView;
-import com.ingenic.iwds.slpt.view.digital.SlptMonthLView;
-import com.ingenic.iwds.slpt.view.digital.SlptTimeView;
-import com.ingenic.iwds.slpt.view.digital.SlptWeekView;
-import com.ingenic.iwds.slpt.view.digital.SlptYear0View;
-import com.ingenic.iwds.slpt.view.digital.SlptYear1View;
-import com.ingenic.iwds.slpt.view.digital.SlptYear2View;
-import com.ingenic.iwds.slpt.view.digital.SlptYear3View;
+import com.ingenic.iwds.slpt.view.utils.SimpleFile;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-
-import com.dinodevs.greatfitwatchface.resource.ResourceManager;
-import com.ingenic.iwds.slpt.view.sport.SlptSportUtil;
-import com.ingenic.iwds.slpt.view.utils.SimpleFile;
 
 
 public class MainClock extends DigitalClockWidget {
@@ -197,16 +173,13 @@ public class MainClock extends DigitalClockWidget {
     };
 
     private final BatteryLevelRepo batteryLevelRepo;
-    private final StepsRepo stepsRepo;
     private final CaloriesRepo caloriesRepo;
     private final TodayDistanceRepo distanceRepo;
 
     public MainClock(BatteryLevelRepo batteryLevelRepo,
-                     StepsRepo stepsRepo,
                      CaloriesRepo caloriesRepo,
                      TodayDistanceRepo distanceRepo) {
         this.batteryLevelRepo = batteryLevelRepo;
-        this.stepsRepo = stepsRepo;
         this.caloriesRepo = caloriesRepo;
         this.distanceRepo = distanceRepo;
     }
@@ -273,31 +246,19 @@ public class MainClock extends DigitalClockWidget {
             final float y = META_TOP_MARGIN + extraTopOffset;
             switch (metadataItem) {
                 case STEPS:
+                    break;
+                case DISTANCE:
                     canvas.drawBitmap(
-                            this.stepsIcon,
-                            new Rect(0, 0, this.stepsIcon.getWidth(), this.stepsIcon.getHeight()),
+                            this.distanceIcon,
+                            new Rect(0, 0, this.distanceIcon.getWidth(), this.distanceIcon.getHeight()),
                             new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
                             this.metaIconPaint
                     );
                     canvas.drawText(
-                            this.stepsRepo.getStepsCount() + "",
+                            this.distanceRepo.getTodayDistanceKm() + " KM",
                             centerX + META_ICON_SIZE + META_LEFT_MARGIN,
                             y - metaTopOffset,
                             this.metaFont
-                    );
-                    break;
-                case DISTANCE:
-                    canvas.drawBitmap(
-                        this.distanceIcon,
-                        new Rect(0, 0, this.distanceIcon.getWidth(), this.distanceIcon.getHeight()),
-                        new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
-                        this.metaIconPaint
-                    );
-                    canvas.drawText(
-                        this.distanceRepo.getTodayDistanceKm() + " KM",
-                        centerX + META_ICON_SIZE + META_LEFT_MARGIN,
-                        y - metaTopOffset,
-                        this.metaFont
                     );
                     break;
                 case BATTERY:
@@ -316,16 +277,16 @@ public class MainClock extends DigitalClockWidget {
                     break;
                 case CALORIES:
                     canvas.drawBitmap(
-                        this.caloriesIcon,
-                        new Rect(0, 0, this.caloriesIcon.getWidth(), this.caloriesIcon.getHeight()),
-                        new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
-                        this.metaIconPaint
+                            this.caloriesIcon,
+                            new Rect(0, 0, this.caloriesIcon.getWidth(), this.caloriesIcon.getHeight()),
+                            new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
+                            this.metaIconPaint
                     );
                     canvas.drawText(
-                        this.caloriesRepo.getCaloriesBurnt() + " KCAL",
-                        centerX + META_ICON_SIZE + META_LEFT_MARGIN,
-                        y - metaTopOffset,
-                        this.metaFont
+                            this.caloriesRepo.getCaloriesBurnt() + " KCAL",
+                            centerX + META_ICON_SIZE + META_LEFT_MARGIN,
+                            y - metaTopOffset,
+                            this.metaFont
                     );
                     break;
             }
@@ -374,9 +335,9 @@ public class MainClock extends DigitalClockWidget {
         hourLayout.add(new SlptHourLView());
         hourLayout.setStringPictureArrayForAll(this.digitalNums);
         hourLayout.setTextAttrForAll(
-            TIME_TEXT_SIZE,
-            COLOR_ACCENT,
-            typeFace
+                TIME_TEXT_SIZE,
+                COLOR_ACCENT,
+                typeFace
         );
         // Position based on screen on
         hourLayout.alignX = 2;

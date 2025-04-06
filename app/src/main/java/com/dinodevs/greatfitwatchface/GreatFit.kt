@@ -1,57 +1,37 @@
-package com.dinodevs.greatfitwatchface;
+package com.dinodevs.greatfitwatchface
 
-import com.dinodevs.greatfitwatchface.data.BatteryLevelRepo;
-import com.dinodevs.greatfitwatchface.data.CaloriesRepo;
-import com.dinodevs.greatfitwatchface.data.StepsRepo;
-import com.dinodevs.greatfitwatchface.data.TodayDistanceRepo;
-import com.dinodevs.greatfitwatchface.settings.LoadSettings;
-import com.dinodevs.greatfitwatchface.widget.GreatWidget;
-import com.dinodevs.greatfitwatchface.widget.MainClock;
-import com.huami.watch.watchface.AbstractSlptClock;
-
-import java.lang.ref.WeakReference;
-
+import com.dinodevs.greatfitwatchface.data.BatteryLevelRepo
+import com.dinodevs.greatfitwatchface.data.CaloriesRepo
+import com.dinodevs.greatfitwatchface.data.TodayDistanceRepo
+import com.dinodevs.greatfitwatchface.widget.MainClock
+import com.dinodevs.greatfitwatchface.widget.NewStepsWidget
+import com.dinodevs.greatfitwatchface.widget.WidgetConstants
+import com.huami.watch.watchface.AbstractSlptClock
+import java.lang.ref.WeakReference
+import kotlin.math.roundToInt
 
 /**
  * Amazfit watch faces
  */
+class GreatFit : AbstractWatchFace() {
+    override fun onCreate() {
+        val context = this.applicationContext
 
-public class GreatFit extends AbstractWatchFace {
-    public GreatFit() {
-        super();
-    }
-    private static WeakReference<GreatFit> instance;
-    private GreatWidget greatWidget = null;
+        val batteryLevelRepo = BatteryLevelRepo { 74 }
+        val caloriesRepo = CaloriesRepo { 50 }
+        val distanceRepo = TodayDistanceRepo { 2.01f }
+        this.clock = MainClock(batteryLevelRepo, caloriesRepo, distanceRepo)
 
+        val factory = MetaWidgetsFactory(context)
+        val metaWidgets = factory.createWidgets()
+        widgets.addAll(metaWidgets)
 
-    @Override
-    public void onCreate() {
-        instance = new WeakReference(this);
+        notifyStatusBarPosition(0f, 175f)
 
-        // Load settings
-        LoadSettings settings = new LoadSettings(this.getApplicationContext());
-
-        final BatteryLevelRepo batteryLevelRepo = () -> settings.battery_percent;
-        final StepsRepo stepsRepo = () -> settings.steps;
-        final CaloriesRepo caloriesRepo = () -> settings.calories;
-        final TodayDistanceRepo distanceRepo = () -> settings.today_distance;
-        this.clock = new MainClock(batteryLevelRepo, stepsRepo, caloriesRepo, distanceRepo);
-
-        notifyStatusBarPosition(0f, 175f);
-
-        super.onCreate();
+        super.onCreate()
     }
 
-    public static GreatWidget getGreatWidget() {
-        WeakReference weakReference = instance;
-        if (weakReference != null) {
-            return ((GreatFit) weakReference.get()).greatWidget;
-        }
-        return null;
-    }
-
-    @Override
-    protected Class<? extends AbstractSlptClock> slptClockClass() {
-        return GreatFitSlpt.class;
+    override fun slptClockClass(): Class<out AbstractSlptClock> {
+        return GreatFitSlpt::class.java
     }
 }

@@ -53,6 +53,8 @@ public abstract class AbstractWatchFace extends com.huami.watch.watchface.Abstra
                 canvas.translate(-widget.getX(), -widget.getY());
             }
         }
+
+
     }
 
     private class AnalogEngine extends com.huami.watch.watchface.AbstractWatchFace.AnalogEngine {

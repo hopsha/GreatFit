@@ -21,6 +21,8 @@ import com.dinodevs.greatfitwatchface.resource.SlptAnalogHourView;
 import com.dinodevs.greatfitwatchface.resource.SlptSecondHView;
 import com.dinodevs.greatfitwatchface.resource.SlptSecondLView;
 import com.dinodevs.greatfitwatchface.settings.LoadSettings;
+import com.dinodevs.greatfitwatchface.slpt.AlignX;
+import com.dinodevs.greatfitwatchface.slpt.AlignY;
 import com.huami.watch.watchface.util.Util;
 import com.ingenic.iwds.slpt.view.analog.SlptAnalogMinuteView;
 import com.ingenic.iwds.slpt.view.analog.SlptAnalogSecondView;
@@ -36,6 +38,7 @@ import com.ingenic.iwds.slpt.view.digital.SlptMinuteHView;
 import com.ingenic.iwds.slpt.view.digital.SlptMinuteLView;
 import com.ingenic.iwds.slpt.view.digital.SlptMonthHView;
 import com.ingenic.iwds.slpt.view.digital.SlptMonthLView;
+import com.ingenic.iwds.slpt.view.digital.SlptTimeView;
 import com.ingenic.iwds.slpt.view.digital.SlptWeekView;
 import com.ingenic.iwds.slpt.view.digital.SlptYear0View;
 import com.ingenic.iwds.slpt.view.digital.SlptYear1View;
@@ -58,7 +61,6 @@ public class MainClock extends DigitalClockWidget {
     private Bitmap dateIcon, stepsIcon, distanceIcon, batteryIcon, caloriesIcon;
 
     private String[] digitalNums = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-    private String[] digitalNumsNo0 = {"", "1", "2", "3", "4", "5", "6", "7", "8", "9"};//no 0 on first digit
 
     private static float META_ICON_SIZE = 23f;
     private static float META_TOP_MARGIN = 106f;
@@ -241,6 +243,8 @@ public class MainClock extends DigitalClockWidget {
         // Draw background image
         //this.background.draw(canvas);
 
+        canvas.drawColor(Color.BLACK);
+
         // Draw time
         canvas.drawText(
                 Util.formatTime(hours),
@@ -347,37 +351,6 @@ public class MainClock extends DigitalClockWidget {
                 DATE_TOP_MARGIN - metaTopOffset,
                 this.metaFont
         );
-/*
-        // Draw Date
-        canvas.drawBitmap(this.dateIcon, settings.dateIconLeft, settings.dateIconTop, settings.mGPaint);
-
-        String date = Util.formatTime(day)+"."+Util.formatTime(month)+"."+Integer.toString(year);
-        canvas.drawText(date, settings.dateLeft, settings.dateTop, this.dateFont);
-
-        // Draw Day
-        if(settings.dayBool) {
-            String dayText = Util.formatTime(day);
-            canvas.drawText(dayText, settings.dayLeft, settings.dayTop, this.dayFont);
-        }
-
-        // Get + Draw WeekDay (using JAVA)
-        if(settings.weekdayBool) {
-            //String weekday = String.format("%S", new SimpleDateFormat("EE").format(calendar.getTime()));
-            int weekdaynum = calendar.get(Calendar.DAY_OF_WEEK)-1;
-            String weekday = (settings.three_letters_day_if_text)? days_3let[settings.language][weekdaynum] : days[settings.language][weekdaynum] ;
-            canvas.drawText(weekday, settings.weekdayLeft, settings.weekdayTop, this.weekdayFont);
-        }
-
-        // Draw Month
-        if(settings.monthBool) {
-            String monthText = (settings.month_as_text)? (
-                    (settings.three_letters_month_if_text)? months_3let[settings.language][month] : months[settings.language][month]
-            ) : (
-                    (settings.no_0_on_hour_first_digit)? Integer.toString(month) : String.format("%02d", month)
-            ) ;
-
-            canvas.drawText(monthText, settings.monthLeft, settings.monthTop, this.monthFont);
-        }*/
     }
 
     // Screen locked/closed watch mode (Slpt mode)
@@ -387,20 +360,31 @@ public class MainClock extends DigitalClockWidget {
     }
 
     public List<SlptViewComponent> buildSlptViewComponent(Service service, boolean better_resolution) {
-        // SLPT only clock
-        boolean show_all = false;
-
-        int tmp_left;
+        // TODO: 4/6/2025 Must add background in order to reset previous frame
         List<SlptViewComponent> slpt_objects = new ArrayList<>();
 
-        // Draw low power icon
-        SlptPictureView lowpower = new SlptPictureView();
-        lowpower.setImagePicture(SimpleFile.readFileFromAssets(service, "slpt_battery/low_battery.png"));
-        //lowpower.picture.setBackgroundColor(backgroundColor);
-        // TODO: 4/3/2025 FIX
-        lowpower.setStart(0, 0);
-        SlptSportUtil.setLowBatteryIconView(lowpower);
-        slpt_objects.add(lowpower);
+        final SlptPictureView background = new SlptPictureView();
+        background.setImagePicture(SimpleFile.readFileFromAssets(service, "background_slpt.png"));
+        slpt_objects.add(background);
+
+        final Typeface typeFace = ResourceManager.getTypeFace(service.getResources(), ResourceManager.Font.GoogleSansMedium);
+
+        final SlptLinearLayout hourLayout = new SlptLinearLayout();
+        hourLayout.add(new SlptHourHView());
+        hourLayout.add(new SlptHourLView());
+        hourLayout.setStringPictureArrayForAll(this.digitalNums);
+        hourLayout.setTextAttrForAll(
+            TIME_TEXT_SIZE,
+            COLOR_ACCENT,
+            typeFace
+        );
+        // Position based on screen on
+        hourLayout.alignX = 2;
+        hourLayout.alignY = 0;
+        hourLayout.setRect(90, 125);
+        hourLayout.setStart(160, 160);
+        //Add it to the list
+        slpt_objects.add(hourLayout);
 
         /*// Set font
         Typeface timeTypeFace = ResourceManager.getTypeFace(service.getResources(), settings.font);

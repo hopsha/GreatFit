@@ -1,13 +1,13 @@
 package com.dinodevs.greatfitwatchface.widget;
 
-import android.app.Service;
+import android.content.Context;
 import android.graphics.Canvas;
 
 
 public abstract class DigitalClockWidget implements ClockWidget {
 
     @Override
-    public void init(Service service) {
+    public void init(Context context) {
         
     }
 

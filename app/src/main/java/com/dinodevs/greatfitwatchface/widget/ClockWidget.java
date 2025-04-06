@@ -1,13 +1,11 @@
 package com.dinodevs.greatfitwatchface.widget;
 
-import android.app.Service;
-
-
+import android.content.Context;
 
 
 public interface ClockWidget extends HasSlptViewComponent{
 
 
 
-    public void init(Service service);
+    public void init(Context context);
 }

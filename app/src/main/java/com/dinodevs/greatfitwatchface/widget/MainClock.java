@@ -1,18 +1,22 @@
 package com.dinodevs.greatfitwatchface.widget;
 
 import android.app.Service;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
-import android.provider.Settings;
 import android.text.TextPaint;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.dinodevs.greatfitwatchface.AbstractWatchFace;
+import com.dinodevs.greatfitwatchface.data.BatteryLevelRepo;
+import com.dinodevs.greatfitwatchface.data.CaloriesRepo;
+import com.dinodevs.greatfitwatchface.data.StepsRepo;
+import com.dinodevs.greatfitwatchface.data.TodayDistanceRepo;
 import com.dinodevs.greatfitwatchface.resource.SlptAnalogHourView;
 import com.dinodevs.greatfitwatchface.resource.SlptSecondHView;
 import com.dinodevs.greatfitwatchface.resource.SlptSecondLView;
@@ -39,11 +43,9 @@ import com.ingenic.iwds.slpt.view.digital.SlptYear2View;
 import com.ingenic.iwds.slpt.view.digital.SlptYear3View;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
-import com.dinodevs.greatfitwatchface.R;
 import com.dinodevs.greatfitwatchface.resource.ResourceManager;
 import com.ingenic.iwds.slpt.view.sport.SlptSportUtil;
 import com.ingenic.iwds.slpt.view.utils.SimpleFile;
@@ -51,11 +53,29 @@ import com.ingenic.iwds.slpt.view.utils.SimpleFile;
 
 public class MainClock extends DigitalClockWidget {
 
-    private TextPaint hourFont, minutesFont, secondsFont, indicatorFont, dateFont, dayFont, weekdayFont, monthFont, yearFont, ampmFont;
-    private Bitmap dateIcon, hourHand, minuteHand, secondsHand, background;
+    private TextPaint timeFont, metaFont;
+    private Paint metaIconPaint;
+    private Bitmap dateIcon, stepsIcon, distanceIcon, batteryIcon, caloriesIcon;
 
     private String[] digitalNums = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
     private String[] digitalNumsNo0 = {"", "1", "2", "3", "4", "5", "6", "7", "8", "9"};//no 0 on first digit
+
+    private static float META_ICON_SIZE = 23f;
+    private static float META_TOP_MARGIN = 106f;
+    private static float META_LEFT_MARGIN = 4f;
+    private static float META_INTERLINE_MARGIN = 11f;
+    private static float META_TEXT_SIZE = 20f;
+
+    private static float TIME_RIGHT_MARGIN = 10f;
+    private static float MINUTE_TOP_MARGIN = 65f;
+
+    private static float TIME_TOP_MARGIN = 5f;
+    private static float TIME_TEXT_SIZE = 80f;
+
+    private static float DATE_TOP_MARGIN = 50f;
+
+    private static int COLOR_ACCENT = 0xffceaf14;
+    private static int COLOR_TEXT = 0xffffffff;
 
     // Languages
     public static String[] codes = {
@@ -68,13 +88,13 @@ public class MainClock extends DigitalClockWidget {
             {"НЕДЕЛЯ", "ПОНЕДЕЛНИК", "ВТОРНИК", "СРЯДА", "ЧЕТВЪРТЪК", "ПЕТЪК", "СЪБОТА"},       //Bulgarian
             {"星期天", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"},                   //Chinese
             {"NEDJELJA", "PONEDJELJAK", "UTORAK", "SRIJEDA", "ČETVRTAK", "PETAK", "SUBOTA"},    //Croatian
-            {"NEDĚLE","PONDĚLÍ", "ÚTERÝ", "STŘEDA", "ČTVRTEK", "PÁTEK", "SOBOTA"},              //Czech
-            {"SØNDAG","MANDAG", "TIRSDAG", "ONSDAG", "TORSDAG", "FREDAG", "LØRDAG"},            //Danish
+            {"NEDĚLE", "PONDĚLÍ", "ÚTERÝ", "STŘEDA", "ČTVRTEK", "PÁTEK", "SOBOTA"},              //Czech
+            {"SØNDAG", "MANDAG", "TIRSDAG", "ONSDAG", "TORSDAG", "FREDAG", "LØRDAG"},            //Danish
             {"ZONDAG", "MAANDAG", "DINSDAG", "WOENSDAG", "DONDERDAG", "VRIJDAG", "ZATERDAG"},   //Dutch
             {"DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"},          //French
             {"SONNTAG", "MONTAG", "DIENSTAG", "MITTWOCH", "DONNERSTAG", "FREITAG", "SAMSTAG"},  //German
             {"ΚΥΡΙΑΚΉ", "ΔΕΥΤΈΡΑ", "ΤΡΊΤΗ", "ΤΕΤΆΡΤΗ", "ΠΈΜΠΤΗ", "ΠΑΡΑΣΚΕΥΉ", "ΣΆΒΒΑΤΟ"},       //Greek
-            {"ש'","ו'","ה'","ד'","ג'","ב'","א'"},                                               //Hebrew
+            {"ש'", "ו'", "ה'", "ד'", "ג'", "ב'", "א'"},                                               //Hebrew
             {"VASÁRNAP", "HÉTFŐ", "KEDD", "SZERDA", "CSÜTÖRTÖK", "PÉNTEK", "SZOMBAT"},          //Hungarian
             {"DOMENICA", "LUNEDÌ", "MARTEDÌ", "MERCOLEDÌ", "GIOVEDÌ", "VENERDÌ", "SABATO"},     //Italian
             {"日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"},                   //Japanese
@@ -87,9 +107,9 @@ public class MainClock extends DigitalClockWidget {
             {"DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"},         //Spanish
             {"อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ุกร์", "สาร์"},                               //Thai
             {"PAZAR", "PAZARTESI", "SALı", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESI"},        //Turkish
-            {"CHỦ NHẬT","THỨ 2", "THỨ 3", "THỨ 4", "THỨ 5", "THỨ 6", "THỨ 7"}                   //Vietnamese
+            {"CHỦ NHẬT", "THỨ 2", "THỨ 3", "THỨ 4", "THỨ 5", "THỨ 6", "THỨ 7"}                   //Vietnamese
     };
-    
+
     public static String[][] days_3let = {
             //{"SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"},
             {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"},                  //English
@@ -97,7 +117,7 @@ public class MainClock extends DigitalClockWidget {
             {"星期天", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"},   //Chinese
             {"NED", "PON", "UTO", "SRI", "ČET", "PET", "SUB"},                  //Croatian
             {"NE", "PO", "ÚT", "ST", "ČT", "PÁ", "SO"},                         //Czech
-            {"SØN","MAN", "TIR", "ONS", "TOR", "FRE", "LØR"},                   //Danish
+            {"SØN", "MAN", "TIR", "ONS", "TOR", "FRE", "LØR"},                   //Danish
             {"ZON", "MAA", "DIN", "WOE", "DON", "VRI", "ZAT"},                  //Dutch
             {"DIM", "LUN", "MAR", "MER", "JEU", "VEN", "SAM"},                  //French
             {"SO", "MO", "DI", "MI", "DO", "FR", "SA"},                         //German
@@ -115,13 +135,13 @@ public class MainClock extends DigitalClockWidget {
             {"DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"},                  //Spanish
             {"อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."},                        //Thai
             {"PAZ", "PZT", "SAL", "ÇAR", "PER", "CUM", "CMT"},                  //Turkish
-            {"CN","T2", "T3", "T4", "T5", "T6", "T7"}                           //Vietnamese
+            {"CN", "T2", "T3", "T4", "T5", "T6", "T7"}                           //Vietnamese
     };
 
     private static String[][] months = {
             //{"DECEMBER", "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"},
             {"DECEMBER", "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"},                               //English
-            {"ДЕКЕМВРИ", "ЯНУАРИ", "ФЕВРУАРИ", "МАРТ", "АПРИЛ", "МАЙ", "ЮНИ", "ЮЛИ", "АВГУСТ", "СЕПТЕМВРИ", "ОКТОМВРИ", "НОЕМВРИ" , "ДЕКЕМВРИ"},                                  //Bulgarian
+            {"ДЕКЕМВРИ", "ЯНУАРИ", "ФЕВРУАРИ", "МАРТ", "АПРИЛ", "МАЙ", "ЮНИ", "ЮЛИ", "АВГУСТ", "СЕПТЕМВРИ", "ОКТОМВРИ", "НОЕМВРИ", "ДЕКЕМВРИ"},                                  //Bulgarian
             {"十二月", "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"},                                                               //Chinese
             {"PROSINAC", "SIJEČANJ", "VELJAČA", "OŽUJAK", "TRAVANJ", "SVIBANJ", "LIPANJ", "SRPANJ", "KOLOVOZ", "RUJAN", "LISTOPAD", "STUDENI", "PROSINAC"},                       //Croatian
             {"PROSINEC", "LEDEN", "ÚNOR", "BŘEZEN", "DUBEN", "KVĚTEN", "ČERVEN", "ČERVENEC", "SRPEN", "ZÁŘÍ", "ŘÍJEN", "LISTOPAD", "PROSINEC"},                                   //Czech
@@ -174,93 +194,45 @@ public class MainClock extends DigitalClockWidget {
             {"T12", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"}                      //Vietnamese
     };
 
-    private Service mService;
-    private LoadSettings settings;
+    private final BatteryLevelRepo batteryLevelRepo;
+    private final StepsRepo stepsRepo;
+    private final CaloriesRepo caloriesRepo;
+    private final TodayDistanceRepo distanceRepo;
 
-    public MainClock(LoadSettings settings) {
-        this.settings = settings;
+    public MainClock(BatteryLevelRepo batteryLevelRepo,
+                     StepsRepo stepsRepo,
+                     CaloriesRepo caloriesRepo,
+                     TodayDistanceRepo distanceRepo) {
+        this.batteryLevelRepo = batteryLevelRepo;
+        this.stepsRepo = stepsRepo;
+        this.caloriesRepo = caloriesRepo;
+        this.distanceRepo = distanceRepo;
     }
 
     @Override
-    public void init(Service service) {
+    public void init(Context context) {
         //this.background = service.getResources().getDrawable(R.drawable.background); //todo
         //this.background.setBounds(0, 0, 320, 300);
-        this.background = Util.decodeImage(service.getResources(),settings.is_white_bg+"background.png");
-        if(settings.isVerge())
-            this.background = Bitmap.createScaledBitmap(this.background, 360, 360, true);
+        this.dateIcon = Util.decodeImage(context.getResources(), "icons/date.png");
+        this.stepsIcon = Util.decodeImage(context.getResources(), "icons/steps.png");
+        this.distanceIcon = Util.decodeImage(context.getResources(), "icons/today_distance.png");
+        this.batteryIcon = Util.decodeImage(context.getResources(), "icons/battery.png");
+        this.caloriesIcon = Util.decodeImage(context.getResources(), "icons/calories.png");
 
-        if(settings.digital_clock) {
-            this.hourFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-            this.hourFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-            this.hourFont.setTextSize(settings.hoursFontSize);
-            this.hourFont.setColor(settings.hoursColor);
-            this.hourFont.setTextAlign((settings.hoursAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER);
+        this.timeFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
+        this.timeFont.setTypeface(ResourceManager.getTypeFace(context.getResources(), ResourceManager.Font.GoogleSansMedium));
+        this.timeFont.setTextSize(TIME_TEXT_SIZE);
+        this.timeFont.setColor(COLOR_ACCENT);
+        this.timeFont.setTextAlign(Paint.Align.RIGHT);
 
-            this.minutesFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-            this.minutesFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-            this.minutesFont.setTextSize(settings.minutesFontSize);
-            this.minutesFont.setColor(settings.minutesColor);
-            this.minutesFont.setTextAlign((settings.minutesAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER);
+        this.metaFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
+        this.metaFont.setTypeface(ResourceManager.getTypeFace(context.getResources(), ResourceManager.Font.GoogleSansMedium));
+        this.metaFont.setTextSize(META_TEXT_SIZE);
+        this.metaFont.setColor(COLOR_TEXT);
+        this.metaFont.setTextAlign(Paint.Align.LEFT);
 
-            this.secondsFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-            this.secondsFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-            this.secondsFont.setTextSize(settings.secondsFontSize);
-            this.secondsFont.setColor(settings.secondsColor);
-            this.secondsFont.setTextAlign((settings.secondsAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER);
-
-            this.indicatorFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-            this.indicatorFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-            this.indicatorFont.setTextSize(settings.indicatorFontSize);
-            this.indicatorFont.setColor(settings.indicatorColor);
-            this.indicatorFont.setTextAlign((settings.indicatorAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER);
-
-            this.ampmFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-            this.ampmFont.setColor(settings.am_pmColor);
-            this.ampmFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-            this.ampmFont.setTextSize(settings.am_pmFontSize);
-            this.ampmFont.setTextAlign((settings.am_pmAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER);
-        }
-
-        if(settings.analog_clock) {
-            this.hourHand = Util.decodeImage(service.getResources(),"timehand/hour"+ ((settings.isVerge())?"_verge":"") +".png");
-            this.minuteHand = Util.decodeImage(service.getResources(),"timehand/minute"+ ((settings.isVerge())?"_verge":"") +".png");
-            this.secondsHand = Util.decodeImage(service.getResources(),"timehand/seconds"+ ((settings.isVerge())?"_verge":"") +".png");
-        }
-
-        if(settings.date>0) {
-            this.dateFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-            this.dateFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-            this.dateFont.setTextSize(settings.dateFontSize);
-            this.dateFont.setColor(settings.dateColor);
-            this.dateFont.setTextAlign((settings.dateAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER);
-            if (settings.dateIcon) {
-                this.dateIcon = Util.decodeImage(service.getResources(), "icons/"+settings.is_white_bg+"date.png");
-            }
-        }
-
-        this.weekdayFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-        this.weekdayFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-        this.weekdayFont.setTextSize(settings.weekdayFontSize);
-        this.weekdayFont.setColor(settings.weekdayColor);
-        this.weekdayFont.setTextAlign( (settings.weekdayAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER );
-
-        this.dayFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-        this.dayFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-        this.dayFont.setTextSize(settings.dayFontSize);
-        this.dayFont.setColor(settings.dayColor);
-        this.dayFont.setTextAlign( (settings.dayAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER );
-
-        this.monthFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-        this.monthFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-        this.monthFont.setTextSize(settings.monthFontSize);
-        this.monthFont.setColor(settings.monthColor);
-        this.monthFont.setTextAlign( (settings.monthAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER );
-
-        this.yearFont = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
-        this.yearFont.setTypeface(ResourceManager.getTypeFace(service.getResources(), settings.font));
-        this.yearFont.setTextSize(settings.yearFontSize);
-        this.yearFont.setColor(settings.yearColor);
-        this.yearFont.setTextAlign( (settings.yearAlignLeft) ? Paint.Align.LEFT : Paint.Align.CENTER );
+        this.metaIconPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        this.metaIconPaint.setColorFilter(new PorterDuffColorFilter(COLOR_ACCENT, PorterDuff.Mode.SRC_IN));
     }
 
     // Screen open watch mode
@@ -268,71 +240,119 @@ public class MainClock extends DigitalClockWidget {
     public void onDrawDigital(Canvas canvas, float width, float height, float centerX, float centerY, int seconds, int minutes, int hours, int year, int month, int day, int week, int ampm) {
         // Draw background image
         //this.background.draw(canvas);
-        canvas.drawBitmap(this.background, 0f, 0f, settings.mGPaint);
 
-        if(settings.digital_clock) {
-            // Draw hours
-            canvas.drawText((settings.no_0_on_hour_first_digit) ? hours + "" : Util.formatTime(hours), settings.hoursLeft, settings.hoursTop, this.hourFont);
+        // Draw time
+        canvas.drawText(
+                Util.formatTime(hours),
+                centerX - TIME_RIGHT_MARGIN,
+                centerY + TIME_TOP_MARGIN,
+                this.timeFont
+        );
 
-            // Draw minutes
-            canvas.drawText(Util.formatTime(minutes), settings.minutesLeft, settings.minutesTop, this.minutesFont);
-
-            // Draw Seconds
-            //if (settings.secondsBool) { (Always draw seconds with unlocked screen as for stock watchface)
-                canvas.drawText(Util.formatTime(seconds), settings.secondsLeft, settings.secondsTop, this.secondsFont);
-            //}
-
-            // : indicator Draw + Flashing
-            if (settings.indicatorBool) {
-                String indicator = ":";
-                if (seconds % 2 == 0 || !settings.flashing_indicator) { // Draw only on even seconds (flashing : symbol)
-                    canvas.drawText(indicator, settings.indicatorLeft, settings.indicatorTop, this.indicatorFont);
-                }
-            }
-
-            // AM-PM (ONLY FOR 12h format)
-            switch (ampm) {
-                case 0:
-                    canvas.drawText("AM", this.settings.am_pmLeft, this.settings.am_pmTop, this.ampmFont);
-                    break;
-                case 1:
-                    canvas.drawText("PM", this.settings.am_pmLeft, this.settings.am_pmTop, this.ampmFont);
-                    break;
-                default:
-                    //Log.d("DinoDevs-GreatFit", "AM-PM: 24h time format is on");
-            }
-        }
-
-        if(settings.analog_clock) {
-            canvas.save();
-            canvas.rotate(((float) (hours * 30)) + ((((float) minutes) / 60.0f) * 30.0f), 160.0f + (settings.isVerge()?20f:0f), 159.0f + (settings.isVerge()?20f:0f));
-            canvas.drawBitmap(this.hourHand, centerX - this.hourHand.getWidth() / 2f, centerY - this.hourHand.getHeight() / 2f, null);
-            canvas.restore();
-            canvas.save();
-            canvas.rotate((float) (minutes * 6), 160.0f + (settings.isVerge()?20f:0f), 159.0f + (settings.isVerge()?20f:0f));
-            canvas.drawBitmap(this.minuteHand, centerX - this.minuteHand.getWidth() / 2f, centerY - this.minuteHand.getHeight() / 2f, null);
-            canvas.restore();
-            //if (settings.secondsBool) { (Always draw seconds with unlocked screen as for stock watchface)
-                canvas.save();
-                canvas.rotate((float) (seconds * 6), 160.0f + (settings.isVerge() ? 20f : 0f), 159.0f + (settings.isVerge() ? 20f : 0f));
-                canvas.drawBitmap(this.secondsHand, centerX - this.secondsHand.getWidth() / 2f, centerY - this.secondsHand.getHeight() / 2f, null);
-                canvas.restore();
-            //}
-        }
+        canvas.drawText(
+                Util.formatTime(minutes),
+                centerX - TIME_RIGHT_MARGIN,
+                centerY + TIME_TOP_MARGIN + MINUTE_TOP_MARGIN,
+                this.timeFont
+        );
 
         // JAVA calendar get/show time library
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_WEEK, week);
 
-        // Draw Date
-        if(settings.date>0) {
-            if(settings.dateIcon){
-                canvas.drawBitmap(this.dateIcon, settings.dateIconLeft, settings.dateIconTop, settings.mGPaint);
-            }
+        final Paint.FontMetrics metaFontMetrics = this.metaFont.getFontMetrics();
+        final float metaTopOffset = metaFontMetrics.top;
 
-            String date = Util.formatTime(day)+"."+Util.formatTime(month)+"."+Integer.toString(year);
-            canvas.drawText(date, settings.dateLeft, settings.dateTop, this.dateFont);
+        for (int i = 0; i < 4; i++) {
+            final MetadataItem metadataItem = MetadataItem.values()[i];
+            final float extraTopOffset = i * (META_INTERLINE_MARGIN + META_ICON_SIZE);
+            final float y = META_TOP_MARGIN + extraTopOffset;
+            switch (metadataItem) {
+                case STEPS:
+                    canvas.drawBitmap(
+                            this.stepsIcon,
+                            new Rect(0, 0, this.stepsIcon.getWidth(), this.stepsIcon.getHeight()),
+                            new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
+                            this.metaIconPaint
+                    );
+                    canvas.drawText(
+                            this.stepsRepo.getStepsCount() + "",
+                            centerX + META_ICON_SIZE + META_LEFT_MARGIN,
+                            y - metaTopOffset,
+                            this.metaFont
+                    );
+                    break;
+                case DISTANCE:
+                    canvas.drawBitmap(
+                        this.distanceIcon,
+                        new Rect(0, 0, this.distanceIcon.getWidth(), this.distanceIcon.getHeight()),
+                        new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
+                        this.metaIconPaint
+                    );
+                    canvas.drawText(
+                        this.distanceRepo.getTodayDistanceKm() + " KM",
+                        centerX + META_ICON_SIZE + META_LEFT_MARGIN,
+                        y - metaTopOffset,
+                        this.metaFont
+                    );
+                    break;
+                case BATTERY:
+                    canvas.drawBitmap(
+                            this.batteryIcon,
+                            new Rect(0, 0, this.batteryIcon.getWidth(), this.batteryIcon.getHeight()),
+                            new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
+                            this.metaIconPaint
+                    );
+                    canvas.drawText(
+                            this.batteryLevelRepo.getBatteryLevel() + "%",
+                            centerX + META_ICON_SIZE + META_LEFT_MARGIN,
+                            y - metaTopOffset,
+                            this.metaFont
+                    );
+                    break;
+                case CALORIES:
+                    canvas.drawBitmap(
+                        this.caloriesIcon,
+                        new Rect(0, 0, this.caloriesIcon.getWidth(), this.caloriesIcon.getHeight()),
+                        new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
+                        this.metaIconPaint
+                    );
+                    canvas.drawText(
+                        this.caloriesRepo.getCaloriesBurnt() + " KCAL",
+                        centerX + META_ICON_SIZE + META_LEFT_MARGIN,
+                        y - metaTopOffset,
+                        this.metaFont
+                    );
+                    break;
+            }
         }
+
+
+        final int weekdaynum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+        final String weekday = days_3let[0][weekdaynum];
+        final String dateText = weekday + " " + months_3let[0][month] + " " + Util.formatTime(day);
+        final float dateTextWidth = this.metaFont.measureText(dateText);
+        final float totalDateWidth = META_ICON_SIZE + META_LEFT_MARGIN + dateTextWidth;
+
+        final float dateStartX = centerX - totalDateWidth / 2;
+        canvas.drawBitmap(
+                this.dateIcon,
+                new Rect(0, 0, this.dateIcon.getWidth(), this.dateIcon.getHeight()),
+                new RectF(dateStartX, DATE_TOP_MARGIN, dateStartX + META_ICON_SIZE, DATE_TOP_MARGIN + META_ICON_SIZE),
+                this.metaIconPaint
+        );
+        canvas.drawText(
+                dateText,
+                dateStartX + META_ICON_SIZE + META_LEFT_MARGIN,
+                DATE_TOP_MARGIN - metaTopOffset,
+                this.metaFont
+        );
+/*
+        // Draw Date
+        canvas.drawBitmap(this.dateIcon, settings.dateIconLeft, settings.dateIconTop, settings.mGPaint);
+
+        String date = Util.formatTime(day)+"."+Util.formatTime(month)+"."+Integer.toString(year);
+        canvas.drawText(date, settings.dateLeft, settings.dateTop, this.dateFont);
 
         // Draw Day
         if(settings.dayBool) {
@@ -357,12 +377,7 @@ public class MainClock extends DigitalClockWidget {
             ) ;
 
             canvas.drawText(monthText, settings.monthLeft, settings.monthTop, this.monthFont);
-        }
-
-        // Draw Year
-        if(settings.yearBool) {
-            canvas.drawText(Integer.toString(year), settings.yearLeft, settings.yearTop, this.yearFont);
-        }
+        }*/
     }
 
     // Screen locked/closed watch mode (Slpt mode)
@@ -372,43 +387,22 @@ public class MainClock extends DigitalClockWidget {
     }
 
     public List<SlptViewComponent> buildSlptViewComponent(Service service, boolean better_resolution) {
-        better_resolution = better_resolution && settings.better_resolution_when_raising_hand;
         // SLPT only clock
-        boolean show_all = (!settings.clock_only_slpt || better_resolution);
-        // SLPT only clock white bg -> to black
-        if(!show_all && settings.isVerge() && settings.white_bg) {
-            settings.is_white_bg = "";
-            settings.hoursColor = Color.parseColor("#ffffff");
-            settings.minutesColor = Color.parseColor("#ffffff");
-            settings.am_pmColor = Color.parseColor("#ffffff");
-        }
-        this.mService = service;
+        boolean show_all = false;
 
         int tmp_left;
         List<SlptViewComponent> slpt_objects = new ArrayList<>();
 
-        // Draw background image
-        SlptPictureView background = new SlptPictureView();
-        background.setImagePicture(SimpleFile.readFileFromAssets(service, settings.is_white_bg+"background"+ ((better_resolution)?"_better":"") + ((settings.isVerge())?"_verge":"") +"_slpt.png"));
-        //Alternative way
-        //background.setImagePicture(ResourceManager.getVergeImageFromAssets(settings.isVerge(), service, "background"+ ((better_resolution)?"_better":"") +"_slpt.png"));
-        slpt_objects.add(background);
+        // Draw low power icon
+        SlptPictureView lowpower = new SlptPictureView();
+        lowpower.setImagePicture(SimpleFile.readFileFromAssets(service, "slpt_battery/low_battery.png"));
+        //lowpower.picture.setBackgroundColor(backgroundColor);
+        // TODO: 4/3/2025 FIX
+        lowpower.setStart(0, 0);
+        SlptSportUtil.setLowBatteryIconView(lowpower);
+        slpt_objects.add(lowpower);
 
-        // Set low power icon
-        if(settings.low_power) {
-            // Draw low power icon
-            SlptPictureView lowpower = new SlptPictureView();
-            lowpower.setImagePicture(SimpleFile.readFileFromAssets(service, "slpt_battery/" + settings.is_white_bg + "low_battery.png"));
-            //lowpower.picture.setBackgroundColor(backgroundColor);
-            lowpower.setStart(
-                    (int) settings.low_powerLeft,
-                    (int) settings.low_powerTop
-            );
-            SlptSportUtil.setLowBatteryIconView(lowpower);
-            slpt_objects.add(lowpower);
-        }
-
-        // Set font
+        /*// Set font
         Typeface timeTypeFace = ResourceManager.getTypeFace(service.getResources(), settings.font);
 
         if(settings.digital_clock) {
@@ -786,8 +780,15 @@ public class MainClock extends DigitalClockWidget {
             );
             //Add it to the list
             slpt_objects.add(WeekdayLayout);
-        }
+        }*/
 
         return slpt_objects;
+    }
+
+    private enum MetadataItem {
+        STEPS,
+        DISTANCE,
+        CALORIES,
+        BATTERY,
     }
 }

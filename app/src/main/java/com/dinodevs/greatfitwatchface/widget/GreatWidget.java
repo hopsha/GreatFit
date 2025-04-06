@@ -370,36 +370,6 @@ public class GreatWidget extends AbstractWidget {
             canvas.drawText(this.customData.phoneBattery+"%", settings.phone_batteryLeft, settings.phone_batteryTop, phoneBatteryPaint);
         }
 
-        // Draw Phone's alarm
-        if(settings.phone_alarm>0) {
-            if(settings.phone_alarmIcon){
-                canvas.drawBitmap(this.phone_alarmIcon, settings.phone_alarmIconLeft, settings.phone_alarmIconTop, settings.mGPaint);
-            }
-            canvas.drawText(translate_alarm(this.customData.phoneAlarm), settings.phone_alarmLeft, settings.phone_alarmTop, phoneAlarmPaint);
-        }
-
-        // Draw notifications
-        if(settings.notifications>0) {
-            if(settings.notificationsIcon){
-                canvas.drawBitmap(this.notificationsIcon, settings.notificationsIconLeft, settings.notificationsIconTop, settings.mGPaint);
-            }
-            canvas.drawText(this.customData.notifications, settings.notificationsLeft, settings.notificationsTop, notificationsPaint);
-        }
-
-        // Draw world_time, if enabled
-        if(settings.world_time>0) {
-            if(settings.world_timeIcon){
-                canvas.drawBitmap(this.world_timeIcon, settings.world_timeIconLeft, settings.world_timeIconTop, settings.mGPaint);
-            }
-            Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-            now.add(Calendar.HOUR, (int) settings.world_time_zone);
-            if(settings.world_time_zone%1!=0) {
-                now.add(Calendar.MINUTE, (settings.world_time_zone>0)?30:-30);
-            }
-            int hours = now.get(Calendar.HOUR_OF_DAY);
-            int minutes = now.get(Calendar.MINUTE);
-            canvas.drawText(Util.formatTime(hours)+":"+Util.formatTime(minutes), settings.world_timeLeft, settings.world_timeTop, world_timePaint);
-        }
 
         // Draw walked distance
         if(settings.walked_distance>0) {

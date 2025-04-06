@@ -4,6 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.dinodevs.greatfitwatchface.data.BatteryLevelRepo;
+import com.dinodevs.greatfitwatchface.data.CaloriesRepo;
+import com.dinodevs.greatfitwatchface.data.StepsRepo;
+import com.dinodevs.greatfitwatchface.data.TodayDistanceRepo;
 import com.dinodevs.greatfitwatchface.settings.LoadSettings;
 import com.dinodevs.greatfitwatchface.widget.BatteryWidget;
 import com.dinodevs.greatfitwatchface.widget.CaloriesWidget;
@@ -39,7 +43,11 @@ public class GreatFitSlpt extends AbstractWatchFaceSlpt {
         // Load settings
         LoadSettings settings = new LoadSettings(context);
 
-        this.clock = new MainClock(settings);
+        final BatteryLevelRepo batteryLevelRepo = () -> settings.battery_percent;
+        final StepsRepo stepsRepo = () -> settings.steps;
+        final CaloriesRepo caloriesRepo = () -> settings.calories;
+        final TodayDistanceRepo distanceRepo = () -> settings.today_distance;
+        this.clock = new MainClock(batteryLevelRepo, stepsRepo, caloriesRepo, distanceRepo);
 
         // Disable all except clock in both SLPT modes
         //if(settings.clock_only_slpt)

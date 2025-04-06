@@ -26,7 +26,10 @@ public class ResourceManager {
     public enum Font {
         Thin("fonts/Thin.otf"),
         Regular("fonts/Regular.otf"),
-        Bold("fonts/Bold.ttf");
+        Bold("fonts/Bold.ttf"),
+
+        GoogleSansMedium("fonts/GoogleSans-Medium.ttf"),
+        GoogleSansRegular("fonts/GoogleSans-Regular.ttf");
         // More fonts can go here
 
         private final String path;

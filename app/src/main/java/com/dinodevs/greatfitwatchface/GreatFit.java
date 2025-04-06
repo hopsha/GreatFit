@@ -2,6 +2,10 @@ package com.dinodevs.greatfitwatchface;
 
 import android.content.Context;
 
+import com.dinodevs.greatfitwatchface.data.BatteryLevelRepo;
+import com.dinodevs.greatfitwatchface.data.CaloriesRepo;
+import com.dinodevs.greatfitwatchface.data.StepsRepo;
+import com.dinodevs.greatfitwatchface.data.TodayDistanceRepo;
 import com.dinodevs.greatfitwatchface.settings.LoadSettings;
 import com.dinodevs.greatfitwatchface.widget.FloorWidget;
 import com.dinodevs.greatfitwatchface.widget.MoonPhaseWidget;
@@ -39,7 +43,11 @@ public class GreatFit extends AbstractWatchFace {
         // Load settings
         LoadSettings settings = new LoadSettings(this.getApplicationContext());
 
-        this.clock = new MainClock(settings);
+        final BatteryLevelRepo batteryLevelRepo = () -> settings.battery_percent;
+        final StepsRepo stepsRepo = () -> settings.steps;
+        final CaloriesRepo caloriesRepo = () -> settings.calories;
+        final TodayDistanceRepo distanceRepo = () -> settings.today_distance;
+        this.clock = new MainClock(batteryLevelRepo, stepsRepo, caloriesRepo, distanceRepo);
 
         if(settings.isHeartRate()) {
             this.widgets.add(new HeartRateWidget(settings));

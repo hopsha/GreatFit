@@ -15,7 +15,6 @@ import android.text.TextPaint;
 
 import com.dinodevs.greatfitwatchface.data.BatteryLevelRepo;
 import com.dinodevs.greatfitwatchface.data.CaloriesRepo;
-import com.dinodevs.greatfitwatchface.data.TodayDistanceRepo;
 import com.dinodevs.greatfitwatchface.resource.ResourceManager;
 import com.huami.watch.watchface.util.Util;
 import com.ingenic.iwds.slpt.view.core.SlptLinearLayout;
@@ -174,14 +173,11 @@ public class MainClock extends DigitalClockWidget {
 
     private final BatteryLevelRepo batteryLevelRepo;
     private final CaloriesRepo caloriesRepo;
-    private final TodayDistanceRepo distanceRepo;
 
     public MainClock(BatteryLevelRepo batteryLevelRepo,
-                     CaloriesRepo caloriesRepo,
-                     TodayDistanceRepo distanceRepo) {
+                     CaloriesRepo caloriesRepo) {
         this.batteryLevelRepo = batteryLevelRepo;
         this.caloriesRepo = caloriesRepo;
-        this.distanceRepo = distanceRepo;
     }
 
     @Override
@@ -248,18 +244,6 @@ public class MainClock extends DigitalClockWidget {
                 case STEPS:
                     break;
                 case DISTANCE:
-                    canvas.drawBitmap(
-                            this.distanceIcon,
-                            new Rect(0, 0, this.distanceIcon.getWidth(), this.distanceIcon.getHeight()),
-                            new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
-                            this.metaIconPaint
-                    );
-                    canvas.drawText(
-                            this.distanceRepo.getTodayDistanceKm() + " KM",
-                            centerX + META_ICON_SIZE + META_LEFT_MARGIN,
-                            y - metaTopOffset,
-                            this.metaFont
-                    );
                     break;
                 case BATTERY:
                     canvas.drawBitmap(

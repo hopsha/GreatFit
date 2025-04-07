@@ -19,8 +19,7 @@ class GreatFit : AbstractWatchFace() {
 
         val batteryLevelRepo = BatteryLevelRepo { 74 }
         val caloriesRepo = CaloriesRepo { 50 }
-        val distanceRepo = TodayDistanceRepo { 2.01f }
-        this.clock = MainClock(batteryLevelRepo, caloriesRepo, distanceRepo)
+        this.clock = MainClock(batteryLevelRepo, caloriesRepo)
 
         val factory = MetaWidgetsFactory(context)
         val metaWidgets = factory.createWidgets()

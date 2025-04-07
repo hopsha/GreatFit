@@ -2,6 +2,7 @@ package com.dinodevs.greatfitwatchface
 
 import android.content.Context
 import com.dinodevs.greatfitwatchface.widget.NewStepsWidget
+import com.dinodevs.greatfitwatchface.widget.NewTodayDistanceWidget
 import com.dinodevs.greatfitwatchface.widget.Widget
 import com.dinodevs.greatfitwatchface.widget.WidgetConstants
 import kotlin.math.roundToInt
@@ -27,7 +28,14 @@ class MetaWidgetsFactory(
                     widgets.add(widget)
                 }
 
-                MetadataItem.DISTANCE -> {}
+                MetadataItem.DISTANCE -> {
+                    val widget = NewTodayDistanceWidget(
+                        context = context,
+                        startX = metaX,
+                        startY = y.roundToInt(),
+                    )
+                    widgets.add(widget)
+                }
                 MetadataItem.CALORIES -> {}
                 MetadataItem.BATTERY -> {}
             }

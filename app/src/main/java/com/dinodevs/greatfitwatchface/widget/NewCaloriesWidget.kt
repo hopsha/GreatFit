@@ -101,6 +101,11 @@ class NewCaloriesWidget(
                 }
             )
 
+            setTextAttrForAll(
+                WidgetConstants.Meta.TEXT_SIZE,
+                WidgetConstants.COLOR_TEXT,
+                textTypeface,
+            )
             alignX = 2
             alignY = 0
             setStart(

@@ -15,7 +15,7 @@ class MetaWidgetsFactory(
     fun createWidgets(): List<Widget> {
         val widgets = mutableListOf<Widget>()
 
-        val metaX = 160
+        val metaX = (160f + WidgetConstants.Meta.MARGIN_LEFT).roundToInt()
         MetadataItem.entries.forEachIndexed { index, metadataItem ->
             val extraTopOffset: Float =
                 index * (WidgetConstants.Meta.MARGIN_INTERLINE + WidgetConstants.Meta.ICON_SIZE)

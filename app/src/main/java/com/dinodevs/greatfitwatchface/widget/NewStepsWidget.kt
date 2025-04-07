@@ -59,6 +59,10 @@ class NewStepsWidget(
             val iconBytes = SimpleFile.readFileFromAssets(service, assetPath)
             setImagePicture(iconBytes)
             setStart(startX, startY)
+            setRect(
+                WidgetConstants.Meta.ICON_SIZE.roundToInt(),
+                WidgetConstants.Meta.ICON_SIZE.roundToInt()
+            )
         }
         result.add(icon)
 

@@ -12,6 +12,8 @@ import android.text.TextPaint
 import com.dinodevs.greatfitwatchface.data.DataType
 import com.dinodevs.greatfitwatchface.data.TodayDistance
 import com.dinodevs.greatfitwatchface.resource.ResourceManager
+import com.dinodevs.greatfitwatchface.slpt.AlignX
+import com.dinodevs.greatfitwatchface.slpt.AlignY
 import com.huami.watch.watchface.util.Util
 import com.ingenic.iwds.slpt.view.core.SlptLinearLayout
 import com.ingenic.iwds.slpt.view.core.SlptPictureView
@@ -109,11 +111,15 @@ class NewTodayDistanceWidget(
                 WidgetConstants.COLOR_TEXT,
                 textTypeface,
             )
-            alignX = 2
-            alignY = 0
+            alignX = AlignX.LEFT.slptValue
+            alignY = AlignY.CENTER.slptValue
             setStart(
                 (startX + WidgetConstants.Meta.ICON_SIZE + WidgetConstants.Meta.MARGIN_LEFT).roundToInt(),
-                (startY - fontTopOffset).roundToInt(),
+                startY,
+            )
+            setRect(
+                (160 - WidgetConstants.Meta.MARGIN_LEFT).roundToInt(),
+                WidgetConstants.Meta.ICON_SIZE.roundToInt()
             )
         }
         result.add(textContainer)

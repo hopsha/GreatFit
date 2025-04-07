@@ -1,6 +1,7 @@
 package com.dinodevs.greatfitwatchface
 
 import android.content.Context
+import com.dinodevs.greatfitwatchface.widget.NewCaloriesWidget
 import com.dinodevs.greatfitwatchface.widget.NewStepsWidget
 import com.dinodevs.greatfitwatchface.widget.NewTodayDistanceWidget
 import com.dinodevs.greatfitwatchface.widget.Widget
@@ -36,7 +37,14 @@ class MetaWidgetsFactory(
                     )
                     widgets.add(widget)
                 }
-                MetadataItem.CALORIES -> {}
+                MetadataItem.CALORIES -> {
+                    val widget = NewCaloriesWidget(
+                        context = context,
+                        startX = metaX,
+                        startY = y.roundToInt(),
+                    )
+                    widgets.add(widget)
+                }
                 MetadataItem.BATTERY -> {}
             }
         }

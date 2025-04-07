@@ -12,6 +12,10 @@ public class Calories {
         this.calories = Math.round(calories);
     }
 
+    public Calories(int calories) {
+        this.calories = calories;
+    }
+
     public int getCalories() {
         return calories;
     }

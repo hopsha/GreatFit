@@ -8,6 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.dinodevs.greatfitwatchface.MetaWidgetsFactory
 import com.dinodevs.greatfitwatchface.WatchfaceRoborazziTest
 import com.dinodevs.greatfitwatchface.data.BatteryLevelRepo
+import com.dinodevs.greatfitwatchface.data.Calories
 import com.dinodevs.greatfitwatchface.data.CaloriesRepo
 import com.dinodevs.greatfitwatchface.data.DataType
 import com.dinodevs.greatfitwatchface.data.Steps
@@ -18,11 +19,10 @@ import org.junit.Test
 class MainClockTest : WatchfaceRoborazziTest() {
 
     private val batteryLevelRepo = BatteryLevelRepo { 74 }
-    private val caloriesRepo = CaloriesRepo { 50 }
 
     private val mainClock by lazy {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        MainClock(batteryLevelRepo, caloriesRepo).apply {
+        MainClock(batteryLevelRepo).apply {
             init(context)
         }
     }
@@ -31,6 +31,7 @@ class MainClockTest : WatchfaceRoborazziTest() {
         factory.createWidgets().apply {
             updateData(DataType.STEPS, Steps(7153, 10000))
             updateData(DataType.DISTANCE, TodayDistance(2.01))
+            updateData(DataType.CALORIES, Calories(50))
         }
     }
 

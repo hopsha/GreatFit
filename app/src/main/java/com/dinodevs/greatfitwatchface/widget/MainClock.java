@@ -172,12 +172,9 @@ public class MainClock extends DigitalClockWidget {
     };
 
     private final BatteryLevelRepo batteryLevelRepo;
-    private final CaloriesRepo caloriesRepo;
 
-    public MainClock(BatteryLevelRepo batteryLevelRepo,
-                     CaloriesRepo caloriesRepo) {
+    public MainClock(BatteryLevelRepo batteryLevelRepo) {
         this.batteryLevelRepo = batteryLevelRepo;
-        this.caloriesRepo = caloriesRepo;
     }
 
     @Override
@@ -260,18 +257,6 @@ public class MainClock extends DigitalClockWidget {
                     );
                     break;
                 case CALORIES:
-                    canvas.drawBitmap(
-                            this.caloriesIcon,
-                            new Rect(0, 0, this.caloriesIcon.getWidth(), this.caloriesIcon.getHeight()),
-                            new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
-                            this.metaIconPaint
-                    );
-                    canvas.drawText(
-                            this.caloriesRepo.getCaloriesBurnt() + " KCAL",
-                            centerX + META_ICON_SIZE + META_LEFT_MARGIN,
-                            y - metaTopOffset,
-                            this.metaFont
-                    );
                     break;
             }
         }

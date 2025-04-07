@@ -171,12 +171,6 @@ public class MainClock extends DigitalClockWidget {
             {"T12", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"}                      //Vietnamese
     };
 
-    private final BatteryLevelRepo batteryLevelRepo;
-
-    public MainClock(BatteryLevelRepo batteryLevelRepo) {
-        this.batteryLevelRepo = batteryLevelRepo;
-    }
-
     @Override
     public void init(Context context) {
         //this.background = service.getResources().getDrawable(R.drawable.background); //todo
@@ -232,35 +226,6 @@ public class MainClock extends DigitalClockWidget {
 
         final Paint.FontMetrics metaFontMetrics = this.metaFont.getFontMetrics();
         final float metaTopOffset = metaFontMetrics.top;
-
-        for (int i = 0; i < 4; i++) {
-            final MetadataItem metadataItem = MetadataItem.values()[i];
-            final float extraTopOffset = i * (META_INTERLINE_MARGIN + META_ICON_SIZE);
-            final float y = META_TOP_MARGIN + extraTopOffset;
-            switch (metadataItem) {
-                case STEPS:
-                    break;
-                case DISTANCE:
-                    break;
-                case BATTERY:
-                    canvas.drawBitmap(
-                            this.batteryIcon,
-                            new Rect(0, 0, this.batteryIcon.getWidth(), this.batteryIcon.getHeight()),
-                            new RectF(centerX, y, centerX + META_ICON_SIZE, y + META_ICON_SIZE),
-                            this.metaIconPaint
-                    );
-                    canvas.drawText(
-                            this.batteryLevelRepo.getBatteryLevel() + "%",
-                            centerX + META_ICON_SIZE + META_LEFT_MARGIN,
-                            y - metaTopOffset,
-                            this.metaFont
-                    );
-                    break;
-                case CALORIES:
-                    break;
-            }
-        }
-
 
         final int weekdaynum = calendar.get(Calendar.DAY_OF_WEEK) - 1;
         final String weekday = days_3let[0][weekdaynum];

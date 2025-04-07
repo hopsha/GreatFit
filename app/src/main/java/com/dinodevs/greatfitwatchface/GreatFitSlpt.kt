@@ -23,8 +23,7 @@ class GreatFitSlpt : AbstractWatchFaceSlpt() {
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val context = this.applicationContext
 
-        val batteryLevelRepo = BatteryLevelRepo { 74 }
-        this.clock = MainClock(batteryLevelRepo)
+        this.clock = MainClock()
 
         val factory = MetaWidgetsFactory(context)
         val metaWidgets = factory.createWidgets()

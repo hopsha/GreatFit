@@ -13,15 +13,21 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 
-import com.dinodevs.greatfitwatchface.data.BatteryLevelRepo;
-import com.dinodevs.greatfitwatchface.data.CaloriesRepo;
 import com.dinodevs.greatfitwatchface.resource.ResourceManager;
+import com.dinodevs.greatfitwatchface.slpt.AlignX;
+import com.dinodevs.greatfitwatchface.slpt.AlignY;
 import com.huami.watch.watchface.util.Util;
 import com.ingenic.iwds.slpt.view.core.SlptLinearLayout;
 import com.ingenic.iwds.slpt.view.core.SlptPictureView;
 import com.ingenic.iwds.slpt.view.core.SlptViewComponent;
+import com.ingenic.iwds.slpt.view.digital.SlptDayHView;
+import com.ingenic.iwds.slpt.view.digital.SlptDayLView;
 import com.ingenic.iwds.slpt.view.digital.SlptHourHView;
 import com.ingenic.iwds.slpt.view.digital.SlptHourLView;
+import com.ingenic.iwds.slpt.view.digital.SlptMinuteHView;
+import com.ingenic.iwds.slpt.view.digital.SlptMinuteLView;
+import com.ingenic.iwds.slpt.view.digital.SlptMonthLView;
+import com.ingenic.iwds.slpt.view.digital.SlptWeekView;
 import com.ingenic.iwds.slpt.view.utils.SimpleFile;
 
 import java.util.ArrayList;
@@ -38,15 +44,13 @@ public class MainClock extends DigitalClockWidget {
     private String[] digitalNums = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 
     private static float META_ICON_SIZE = 23f;
-    private static float META_TOP_MARGIN = 106f;
     private static float META_LEFT_MARGIN = 4f;
-    private static float META_INTERLINE_MARGIN = 11f;
     private static float META_TEXT_SIZE = 20f;
 
     private static float TIME_RIGHT_MARGIN = 10f;
     private static float MINUTE_TOP_MARGIN = 65f;
 
-    private static float TIME_TOP_MARGIN = 5f;
+    private static float TIME_TOP_MARGIN = 0f;
     private static float TIME_TEXT_SIZE = 80f;
 
     private static float DATE_TOP_MARGIN = 50f;
@@ -265,6 +269,7 @@ public class MainClock extends DigitalClockWidget {
         final Typeface typeFace = ResourceManager.getTypeFace(service.getResources(), ResourceManager.Font.GoogleSansMedium);
 
         final SlptLinearLayout hourLayout = new SlptLinearLayout();
+
         hourLayout.add(new SlptHourHView());
         hourLayout.add(new SlptHourLView());
         hourLayout.setStringPictureArrayForAll(this.digitalNums);
@@ -274,12 +279,80 @@ public class MainClock extends DigitalClockWidget {
                 typeFace
         );
         // Position based on screen on
-        hourLayout.alignX = 2;
-        hourLayout.alignY = 0;
-        hourLayout.setRect(90, 125);
-        hourLayout.setStart(160, 160);
+        hourLayout.alignX = AlignX.RIGHT.getSlptValue();
+        hourLayout.alignY = AlignY.BOTTOM.getSlptValue();
+        hourLayout.setStart(0, 0);
+        hourLayout.setRect(160 - Math.round(TIME_RIGHT_MARGIN), 150 + 30);
         //Add it to the list
         slpt_objects.add(hourLayout);
+
+        final SlptLinearLayout minuteLayout = new SlptLinearLayout();
+        minuteLayout.add(new SlptMinuteHView());
+        minuteLayout.add(new SlptMinuteLView());
+        minuteLayout.setStringPictureArrayForAll(this.digitalNums);
+        minuteLayout.setTextAttrForAll(
+                TIME_TEXT_SIZE,
+                COLOR_ACCENT,
+                typeFace
+        );
+        // Position based on screen on
+        minuteLayout.alignX = AlignX.RIGHT.getSlptValue();
+        minuteLayout.alignY = AlignY.TOP.getSlptValue();
+        minuteLayout.setStart(0, 150);
+        minuteLayout.setRect(160 - Math.round(TIME_RIGHT_MARGIN), 150);
+        //Add it to the list
+        slpt_objects.add(minuteLayout);
+
+        final SlptLinearLayout dateLayout = new SlptLinearLayout();
+        final SlptPictureView dateIcon = new SlptPictureView();
+        final byte[] iconBytes = SimpleFile.readFileFromAssets(service, "icons/date.png");
+        dateIcon.setImagePicture(iconBytes);
+        dateIcon.setRect(
+            Math.round(WidgetConstants.Meta.INSTANCE.getICON_SIZE()),
+            Math.round(WidgetConstants.Meta.INSTANCE.getICON_SIZE()));
+        dateLayout.add(dateIcon);
+
+        final SlptPictureView dateGap1 = new SlptPictureView();
+        dateGap1.setStringPicture(" ");
+        dateLayout.add(dateGap1);
+
+        final SlptWeekView weekView = new SlptWeekView();
+        weekView.setStringPictureArray(days_3let[0]);
+        dateLayout.add(weekView);
+
+        final SlptPictureView dateGap2 = new SlptPictureView();
+        dateGap2.setStringPicture(" ");
+        dateLayout.add(dateGap2);
+
+        Calendar calendar = Calendar.getInstance();
+        int month = calendar.get(Calendar.MONTH);
+
+        final SlptMonthLView monthView = new SlptMonthLView();
+        // Fix 00 type of month
+        if (month >= 9) { // 9: October, 10: November, 11: December
+            months_3let[0][0] = months_3let[0][10];
+            months_3let[0][1] = months_3let[0][11];
+            months_3let[0][2] = months_3let[0][12];
+        }
+        monthView.setStringPictureArray(months_3let[0]);
+        dateLayout.add(monthView);
+
+        final SlptPictureView dateGap3 = new SlptPictureView();
+        dateGap3.setStringPicture(" ");
+        dateLayout.add(dateGap3);
+
+        dateLayout.add(new SlptDayHView());
+        dateLayout.add(new SlptDayLView());
+
+        dateLayout.setTextAttrForAll(
+                META_TEXT_SIZE,
+                COLOR_TEXT,
+                typeFace
+        );
+        dateLayout.alignX = 2;
+        dateLayout.setStart(0, Math.round(DATE_TOP_MARGIN));
+        dateLayout.setRect(320, 40);
+        slpt_objects.add(dateLayout);
 
         /*// Set font
         Typeface timeTypeFace = ResourceManager.getTypeFace(service.getResources(), settings.font);
@@ -662,12 +735,5 @@ public class MainClock extends DigitalClockWidget {
         }*/
 
         return slpt_objects;
-    }
-
-    private enum MetadataItem {
-        STEPS,
-        DISTANCE,
-        CALORIES,
-        BATTERY,
     }
 }
